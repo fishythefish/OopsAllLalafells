@@ -180,7 +180,7 @@ namespace OopsAllLalafells
                     _ => customData.LipColor
                 };
 
-                customData.HairStyle = (byte) (customData.HairStyle % RaceMappings.RaceHairs[targetRace] + 1);
+                customData.HairStyle = (byte) (customData.HairStyle % RaceMappings.RaceHairs[targetRace]);
 
                 Marshal.StructureToPtr(customData, customizeDataPtr, true);
 
