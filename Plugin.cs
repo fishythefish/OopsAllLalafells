@@ -313,6 +313,16 @@ namespace OopsAllLalafells
                 PluginLog.Log($"New {eq.model}, {eq.variant}");
 #endif
             }
+            else
+            {
+                var actor = Marshal.PtrToStructure<Actor>(lastActor);
+                byte objectKind = Marshal.ReadByte(lastActor + ActorOffsets.ObjectKind);
+                if (objectKind == (byte)ObjectKind.BattleNpc || objectKind == (byte)ObjectKind.EventNpc)
+                {
+                    eq.model = RACE_STARTER_GEAR_ID_MAP[(byte) lastHumanoidRace - 1, lastHumanoidGender];
+                    eq.variant = 1;
+                }
+            }
 
             return eq;
         }
