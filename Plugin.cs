@@ -141,18 +141,18 @@ namespace OopsAllLalafells
                     && actor.ActorId != this.pluginInterface.ClientState.LocalPlayer.ActorId
                     && this.config.ShouldChangeOthers)
                 {
-                    this.ChangeRace(customizeDataPtr, this.config.ChangeOthersTargetRace);
+                    this.ChangeRace(customizeDataPtr, this.config.ChangeOthersSourceRace, this.config.ChangeOthersTargetRace);
                 }
             }
 
             return charaInitHook.Original(drawObjectBase, customizeDataPtr);
         }
 
-        private void ChangeRace(IntPtr customizeDataPtr, Race targetRace)
+        private void ChangeRace(IntPtr customizeDataPtr, Race? sourceRace, Race targetRace)
         {
             var customData = Marshal.PtrToStructure<CharaCustomizeData>(customizeDataPtr);
 
-            if (customData.Race != targetRace)
+            if (customData.Race != targetRace && (sourceRace == null || customData.Race == sourceRace.Value))
             {
                 // Modify the race/tribe accordingly
                 customData.Race = targetRace;

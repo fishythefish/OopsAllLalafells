@@ -31,6 +31,7 @@ namespace OopsAllLalafells
                 
                 if (enableExperimental)
                 {
+                    Race? othersSourceRace = this.plugin.config.ChangeOthersSourceRace;
                     Race othersTargetRace = this.plugin.config.ChangeOthersTargetRace;
                     if (shouldChangeOthers)
                     {

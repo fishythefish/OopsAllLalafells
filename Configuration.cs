@@ -9,7 +9,10 @@ namespace OopsAllLalafells {
         private DalamudPluginInterface pluginInterface;
 
         public int Version { get; set; } = 1;
-        
+
+        [JsonIgnore] // Experimental feature - do not load/save
+        public Race? ChangeOthersSourceRace { get; set; } = null;
+
         [JsonIgnore] // Experimental feature - do not load/save
         public Race ChangeOthersTargetRace { get; set; } = Race.LALAFELL;
         
