@@ -173,13 +173,6 @@ namespace OopsAllLalafells
                 // Constrain body type to 0-1 so we don't crash the game
                 customData.ModelType %= 2;
 
-                // Hrothgar have a limited number of lip colors?
-                customData.LipColor = targetRace switch
-                {
-                    Race.HROTHGAR => (byte) (customData.LipColor % 5 + 1),
-                    _ => customData.LipColor
-                };
-
                 customData.HairStyle = (byte) (customData.HairStyle % RaceMappings.RaceHairs[targetRace]);
 
                 Marshal.StructureToPtr(customData, customizeDataPtr, true);
