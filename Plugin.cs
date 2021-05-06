@@ -9,6 +9,7 @@ using Dalamud.Game.ClientState.Structs;
 using Dalamud.Plugin;
 using Dalamud.Hooking;
 using OopsAllLalafells.Attributes;
+using System.Linq;
 
 namespace OopsAllLalafells
 {
@@ -32,6 +33,8 @@ namespace OopsAllLalafells
 
         private static readonly short[] RACE_STARTER_GEAR_IDS;
 
+        private static readonly ObjectKind[] HUMANOIDS = { ObjectKind.Player, ObjectKind.BattleNpc, ObjectKind.EventNpc, ObjectKind.Retainer };
+
         public string Name => "Oops, All Lalafells!";
         private DalamudPluginInterface pluginInterface;
         public Configuration config { get; private set; }
@@ -53,11 +56,11 @@ namespace OopsAllLalafells
         private Hook<FlagSlotUpdate> flagSlotUpdateHook;
 
         private IntPtr lastActor;
-        private bool lastWasPlayer;
+        private bool lastWasHumanoid;
         private bool lastWasModified;
 
-        private Race lastPlayerRace;
-        private byte lastPlayerGender;
+        private Race lastHumanoidRace;
+        private byte lastHumanoidGender;
 
         // This sucks, but here we are
         static Plugin()
@@ -111,19 +114,20 @@ namespace OopsAllLalafells
             this.flagSlotUpdateHook.Enable();
 
             // Trigger an initial refresh of all players
-            RefreshAllPlayers();
+            RefreshAllHumanoids();
         }
 
         private IntPtr CharacterIsMountedDetour(IntPtr actorPtr)
         {
-            if (Marshal.ReadByte(actorPtr + ActorOffsets.ObjectKind) == (byte) ObjectKind.Player)
+            byte objectKind = Marshal.ReadByte(actorPtr + ActorOffsets.ObjectKind);
+            if (HUMANOIDS.Contains((ObjectKind)objectKind))
             {
                 lastActor = actorPtr;
-                lastWasPlayer = true;
+                lastWasHumanoid = true;
             }
             else
             {
-                lastWasPlayer = false;
+                lastWasHumanoid = false;
             }
 
             return charaMountedHook.Original(actorPtr);
@@ -131,7 +135,7 @@ namespace OopsAllLalafells
 
         private IntPtr CharacterInitializeDetour(IntPtr drawObjectBase, IntPtr customizeDataPtr)
         {
-            if (lastWasPlayer)
+            if (lastWasHumanoid)
             {
                 lastWasModified = false;
                 var actor = Marshal.PtrToStructure<Actor>(lastActor);
@@ -185,19 +189,19 @@ namespace OopsAllLalafells
                 Marshal.StructureToPtr(customData, customizeDataPtr, true);
 
                 // Record the new race/gender for equip model mapping, and mark the equip as dirty
-                lastPlayerRace = customData.Race;
-                lastPlayerGender = customData.Gender;
+                lastHumanoidRace = customData.Race;
+                lastHumanoidGender = customData.Gender;
                 lastWasModified = true;
             }
         }
 
         private IntPtr FlagSlotUpdateDetour(IntPtr actorPtr, uint slot, IntPtr equipDataPtr)
         {
-            if (lastWasPlayer && lastWasModified)
+            if (lastWasHumanoid && lastWasModified)
             {
                 var equipData = Marshal.PtrToStructure<EquipData>(equipDataPtr);
                 // TODO: Handle gender-locked gear for Viera/Hrothgar
-                equipData = MapRacialEquipModels(lastPlayerRace, lastPlayerGender, equipData);
+                equipData = MapRacialEquipModels(lastHumanoidRace, lastHumanoidGender, equipData);
                 Marshal.StructureToPtr(equipData, equipDataPtr, true);
             }
 
@@ -210,7 +214,7 @@ namespace OopsAllLalafells
             {
                 this.config.Save();
                 this.unsavedConfigChanges = false;
-                this.RefreshAllPlayers();
+                this.RefreshAllHumanoids();
                 return true;
             }
 
@@ -254,7 +258,7 @@ namespace OopsAllLalafells
             unsavedConfigChanges = true;
         }
 
-        public async void RefreshAllPlayers()
+        public async void RefreshAllHumanoids()
         {
             // Workaround to prevent literally genociding the actor table if we load at the same time as Dalamud + Dalamud is loading while ingame
             await Task.Delay(100); // LMFAOOOOOOOOOOOOOOOOOOO
@@ -268,8 +272,7 @@ namespace OopsAllLalafells
             {
                 var actor = this.pluginInterface.ClientState.Actors[i];
 
-                if (actor != null
-                    && actor.ObjectKind == ObjectKind.Player)
+                if (actor != null && HUMANOIDS.Contains(actor.ObjectKind))
                 {
                     RerenderActor(actor);
                 }
@@ -347,7 +350,7 @@ namespace OopsAllLalafells
             this.flagSlotUpdateHook.Dispose();
 
             // Refresh all players again
-            RefreshAllPlayers();
+            RefreshAllHumanoids();
 
             this.pluginInterface.Dispose();
         }
