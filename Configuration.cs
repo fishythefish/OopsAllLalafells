@@ -10,10 +10,8 @@ namespace OopsAllLalafells {
 
         public int Version { get; set; } = 1;
 
-        [JsonIgnore] // Experimental feature - do not load/save
         public Race? ChangeOthersSourceRace { get; set; } = null;
 
-        [JsonIgnore] // Experimental feature - do not load/save
         public Race ChangeOthersTargetRace { get; set; } = Race.LALAFELL;
         
         public bool ShouldChangeOthers { get; set; } = false;
