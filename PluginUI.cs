@@ -35,7 +35,41 @@ namespace OopsAllLalafells
                     Race othersTargetRace = this.plugin.config.ChangeOthersTargetRace;
                     if (shouldChangeOthers)
                     {
-                        if (ImGui.BeginCombo("Race", othersTargetRace.GetAttribute<Display>().Value))
+                        String currentSourceRace = othersSourceRace.HasValue ? othersSourceRace.Value.GetAttribute<Display>().Value : "Any";
+                        if (ImGui.BeginCombo("Original Race", currentSourceRace))
+                        {
+                            ImGui.PushID(0);
+                            if (ImGui.Selectable("Any", !othersSourceRace.HasValue))
+                            {
+                                othersSourceRace = null;
+                            }
+
+                            if (!othersSourceRace.HasValue)
+                            {
+                                ImGui.SetItemDefaultFocus();
+                            }
+                            ImGui.PopID();
+
+                            foreach (Race race in Enum.GetValues(typeof(Race)))
+                            {
+                                ImGui.PushID((byte)race);
+                                if (ImGui.Selectable(race.GetAttribute<Display>().Value, race == othersSourceRace))
+                                {
+                                    othersSourceRace = race;
+                                }
+
+                                if (race == othersSourceRace)
+                                {
+                                    ImGui.SetItemDefaultFocus();
+                                }
+
+                                ImGui.PopID();
+                            }
+
+                            ImGui.EndCombo();
+                        }
+
+                        if (ImGui.BeginCombo("New Race", othersTargetRace.GetAttribute<Display>().Value))
                         {
                             foreach (Race race in Enum.GetValues(typeof(Race)))
                             {
@@ -56,12 +90,14 @@ namespace OopsAllLalafells
                             ImGui.EndCombo();
                         }
                     }
-                    
-                    this.plugin.UpdateOtherRace(othersTargetRace);
+
+                    this.plugin.UpdateOtherSourceRace(othersSourceRace);
+                    this.plugin.UpdateOtherTargetRace(othersTargetRace);
                 }
                 else
                 {
-                    this.plugin.UpdateOtherRace(Race.LALAFELL);
+                    this.plugin.UpdateOtherSourceRace(null);
+                    this.plugin.UpdateOtherTargetRace(Race.LALAFELL);
                 }
                 
                 this.plugin.ToggleOtherRace(shouldChangeOthers);

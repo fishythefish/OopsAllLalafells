@@ -229,7 +229,20 @@ namespace OopsAllLalafells
             unsavedConfigChanges = true;
         }
 
-        public void UpdateOtherRace(Race race)
+        public void UpdateOtherSourceRace(Race? race)
+        {
+            if (this.config.ChangeOthersSourceRace == race)
+            {
+                return;
+            }
+
+            String newRace = race.HasValue ? $"{race.Value}" : "Any";
+            PluginLog.Log($"Source race for other players changed to {newRace}, refreshing players");
+            this.config.ChangeOthersSourceRace = race;
+            unsavedConfigChanges = true;
+        }
+
+        public void UpdateOtherTargetRace(Race race)
         {
             if (this.config.ChangeOthersTargetRace == race)
             {
